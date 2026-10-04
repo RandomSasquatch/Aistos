@@ -28,6 +28,7 @@ const PERMISSION_ALLOWLIST = new Set([
   "webRequest",
   "webRequestBlocking",
   "alarms"
+  "scripting"
 ]);
 
 const HOST_PERMISSION_ALLOWLIST = new Set([
