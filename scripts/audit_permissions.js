@@ -27,7 +27,7 @@ const PERMISSION_ALLOWLIST = new Set([
   "webNavigation",
   "webRequest",
   "webRequestBlocking",
-  "alarms"
+  "alarms",
   "scripting"
 ]);
 
