@@ -13,7 +13,7 @@
 [![Manifest V3](https://img.shields.io/badge/Manifest-V3-orange.svg)]()
 
   <p><strong>A military-grade, lightweight (&lt;10MB) session sandbox for Firefox power users.</strong></p>
-  
+
   <p>
     <a href="#-core-architecture">Architecture</a> &bull;
     <a href="#-what-aistos-replaces">Replaces</a> &bull;

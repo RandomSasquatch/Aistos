@@ -1,2 +1,12 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# .gitattributes
+# Enforce LF (Unix) line endings for all text files to protect CI pipelines
+* text=auto eol=lf
+
+# Strictly enforce LF for bash scripts and CI workflows
+*.sh text eol=lf
+*.yml text eol=lf
+
+# Declare binary files to prevent Git from corrupting them
+*.png binary
+*.xpi binary
+*.zip binary
