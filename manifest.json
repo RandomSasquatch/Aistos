@@ -3,10 +3,12 @@
   "name": "Aistos",
   "version": "1.0.0",
   "description": "Zero-Trust Session Sandbox. Native firewalling, ephemeral workspaces, and instant data vaporization.",
+  "default_locale": "en",
   "browser_specific_settings": {
     "gecko": {
       "id": "aistos@zerosandbox.privacy",
-      "strict_min_version": "115.0"
+      "strict_min_version": "115.0",
+      "data_collection_permissions": false
     }
   },
   "permissions": [
@@ -22,7 +24,8 @@
     "webNavigation",
     "webRequest",
     "webRequestBlocking",
-    "alarms"
+    "alarms",
+    "scripting"
   ],
   "host_permissions": [
     "<all_urls>"

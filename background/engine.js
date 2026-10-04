@@ -16,17 +16,17 @@ const WATCHDOG_ALARM_NAME = "Aistos_Watchdog_Heartbeat";
 async function boot() {
   console.log("[Aistos Engine] Initializing Zero-Trust Security Sandbox...");
 
-  // 1. Load static dictionaries
+  // 1. Load static tracking dictionaries into memory limits
   await initUrlSanitizer();
 
-  // 2. Bind functional managers
+  // 2. Bind core functional background managers (Zero-Framework Architecture)
   setupContainerManager();
   setupStealthArmor();
   setupNetworkFirewall();
   setupTabManager();
   setupContextMenu();
 
-  // 3. Register Watchdog Heartbeat Alarm
+  // 3. Register Watchdog Heartbeat Alarm to clean up orphaned resources
   browser.alarms.create(WATCHDOG_ALARM_NAME, { periodInMinutes: 1 });
   browser.alarms.onAlarm.addListener(onWatchdogAlarm);
 
@@ -44,6 +44,7 @@ async function onWatchdogAlarm(alarm) {
     for (const burner of burners) {
       const tabs = await browser.tabs.query({ cookieStoreId: burner.cookieStoreId });
       if (tabs.length === 0) {
+        // Vaporize the orphaned container automatically
         await browser.contextualIdentities.remove(burner.cookieStoreId);
         console.log(`[Aistos Watchdog] Purged orphaned burner: ${burner.cookieStoreId}`);
       }
@@ -53,7 +54,7 @@ async function onWatchdogAlarm(alarm) {
   }
 }
 
-// Lifecycle boot
+// Lifecycle boot - Sets up blank vault state on first installation
 browser.runtime.onInstalled.addListener(async (details) => {
   if (details.reason === "install") {
     await browser.storage.local.set({

@@ -20,7 +20,6 @@ function setupInteractiveScanner() {
     btnScan.disabled = true;
     btnScan.textContent = "Scanning...";
     
-    // Scan default container for cookies expiring > 30 days from now (typically auth tokens)
     const thirtyDaysFromNow = (Date.now() / 1000) + (30 * 24 * 60 * 60);
     const cookies = await browser.cookies.getAll({ storeId: "firefox-default" });
     
@@ -32,14 +31,27 @@ function setupInteractiveScanner() {
       }
     }
 
-    listEl.innerHTML = "";
+    // Safely clear previous scan results
+    listEl.replaceChildren();
+
     if (persistentDomains.size === 0) {
-      listEl.innerHTML = "<li>No persistent logins detected.</li>";
+      const emptyStateLi = document.createElement("li");
+      emptyStateLi.textContent = "No persistent logins detected.";
+      listEl.appendChild(emptyStateLi);
       btnCommit.style.display = "none";
     } else {
       persistentDomains.forEach(domain => {
         const li = document.createElement("li");
-        li.innerHTML = `<label><input type="checkbox" value="${domain}" checked> ${domain}</label>`;
+        const label = document.createElement("label");
+        const checkbox = document.createElement("input");
+        
+        checkbox.type = "checkbox";
+        checkbox.value = domain;
+        checkbox.checked = true;
+        
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(` ${domain}`));
+        li.appendChild(label);
         listEl.appendChild(li);
       });
       btnCommit.style.display = "block";
@@ -54,7 +66,7 @@ function setupInteractiveScanner() {
     const { domainVaults = {} } = await browser.storage.local.get("domainVaults");
     
     checkboxes.forEach(cb => {
-      domainVaults[cb.value] = "firefox-default"; // Map to default persistent vault
+      domainVaults[cb.value] = "firefox-default"; 
     });
 
     await browser.storage.local.set({ domainVaults });

@@ -1,9 +1,10 @@
 /**
  * Aistos Options Controller
  * Native Drag & Drop and debounced local storage writes.
+ * 100% innerHTML-free for Mozilla addons-linter compliance.
  */
 
-let vaultRules = []; // Stored as array to preserve priority order
+let vaultRules = [];
 
 document.addEventListener("DOMContentLoaded", async () => {
   await loadState();
@@ -12,7 +13,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 async function loadState() {
-  // Convert legacy object map to ordered array if needed
   const data = await browser.storage.local.get("domainVaults");
   if (data.domainVaults && !Array.isArray(data.domainVaults)) {
     vaultRules = Object.entries(data.domainVaults).map(([domain, containerId]) => ({ domain, containerId }));
@@ -25,7 +25,6 @@ async function loadState() {
 async function loadContainerOptions() {
   const select = document.getElementById("new-container");
   const containers = await browser.contextualIdentities.query({});
-  // Only allow routing to permanent containers, hide Burners
   const permanent = containers.filter(c => !c.name.startsWith("AistosBurner"));
   
   for (const c of permanent) {
@@ -36,7 +35,6 @@ async function loadContainerOptions() {
   }
 }
 
-// Memory-safe debounce to prevent UI thread blocking
 let saveTimeout;
 function debouncedSave() {
   clearTimeout(saveTimeout);
@@ -47,7 +45,8 @@ function debouncedSave() {
 
 function renderList() {
   const list = document.getElementById("rules-list");
-  list.innerHTML = "";
+  // Safely clear the list without using innerHTML
+  list.replaceChildren(); 
 
   vaultRules.forEach((rule, index) => {
     const li = document.createElement("li");
@@ -55,12 +54,29 @@ function renderList() {
     li.draggable = true;
     li.dataset.index = index;
     
-    li.innerHTML = `
-      <span><strong>${rule.domain}</strong> &rarr; <small>${rule.containerId}</small></span>
-      <button class="btn danger btn-remove" data-index="${index}">X</button>
-    `;
+    // Construct text nodes safely
+    const span = document.createElement("span");
+    const strong = document.createElement("strong");
+    strong.textContent = rule.domain;
+    
+    const small = document.createElement("small");
+    small.textContent = rule.containerId;
+    
+    span.appendChild(strong);
+    span.appendChild(document.createTextNode(" \u2192 ")); // Safe arrow rendering
+    span.appendChild(small);
 
-    // Native Drag and Drop Listeners
+    // Construct button safely
+    const btn = document.createElement("button");
+    btn.className = "btn danger btn-remove";
+    btn.dataset.index = index;
+    btn.textContent = "X";
+    btn.setAttribute("aria-label", `Remove rule for ${rule.domain}`);
+
+    li.appendChild(span);
+    li.appendChild(btn);
+
+    // Bind Drag and Drop Listeners
     li.addEventListener("dragstart", handleDragStart);
     li.addEventListener("dragover", handleDragOver);
     li.addEventListener("drop", handleDrop);
@@ -68,6 +84,7 @@ function renderList() {
     list.appendChild(li);
   });
 
+  // Rebind remove buttons natively
   document.querySelectorAll(".btn-remove").forEach(btn => {
     btn.addEventListener("click", (e) => {
       const idx = parseInt(e.target.dataset.index, 10);
@@ -86,7 +103,6 @@ function setupUI() {
     const domain = domainInput.value.trim();
     if (domain.length < 3) return;
 
-    // Unshift adds to the top of the priority list
     vaultRules.unshift({ domain, containerId: containerSelect.value });
     domainInput.value = "";
     
@@ -116,7 +132,6 @@ function handleDrop(e) {
   const targetIndex = parseInt(targetLi.dataset.index, 10);
   if (draggedIndex === targetIndex) return;
 
-  // Reorder array
   const [movedItem] = vaultRules.splice(draggedIndex, 1);
   vaultRules.splice(targetIndex, 0, movedItem);
   
