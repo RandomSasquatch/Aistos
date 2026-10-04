@@ -7,6 +7,8 @@
 
 # Aistos: Zero-Trust Session Sandbox
 
+[![Firefox Add-ons](https://img.shields.io/badge/Firefox%20Add--ons-Install%20Aistos-FF7139?style=for-the-badge&logo=firefox-browser&logoColor=white)](https://addons.mozilla.org/firefox/addon/aistos/)
+<br><br>
 [![CI Pipeline](https://github.com/RandomSasquatch/Aistos/actions/workflows/aistos_ci_pipeline.yml/badge.svg)](https://github.com/RandomSasquatch/Aistos/actions/workflows/aistos_ci_pipeline.yml)
 [![License: AGPLv3 / Proprietary](https://img.shields.io/badge/License-AGPLv3%20%2F%20Proprietary-blue.svg)](LICENSE)
 [![RAM Usage: < 10MB](https://img.shields.io/badge/RAM%20Usage-%3C%2010MB-brightgreen.svg)]()
@@ -15,6 +17,7 @@
   <p><strong>A military-grade, lightweight (&lt;10MB) session sandbox for Firefox power users.</strong></p>
 
   <p>
+    <a href="#-installation">Installation</a> &bull;
     <a href="#-core-architecture">Architecture</a> &bull;
     <a href="#-what-aistos-replaces">Replaces</a> &bull;
     <a href="#development--testing">Development</a> &bull;
@@ -49,6 +52,18 @@ Aistos is engineered to consolidate a bloated, multi-extension privacy stack int
 * **CanvasBlocker / Fingerprint Shields:** Replaced by context-aware Tor-derived stealth armor (`resistFingerprinting`) active exclusively inside Burner workspaces—avoiding breakage on regular sites.
 
 ---
+
+## 📦 Installation
+
+For everyday browsing, install Aistos directly from the official Mozilla Add-ons repository to receive verified builds and automated background updates:
+
+<div align="center">
+  <a href="https://addons.mozilla.org/firefox/addon/aistos/">
+    <img src="https://blog.mozilla.org/addons/files/2015/11/get-the-addon-fx-apr-2013.png" alt="Get Aistos on Firefox Add-ons" width="172" height="60">
+  </a>
+</div>
+
+> **Note for Developers & Auditors:** If you want to audit the source code, contribute, or run custom test builds locally, refer to the [Development & Testing](#development--testing) section below.
 
 ## Development & Testing
 
