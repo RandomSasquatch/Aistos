@@ -1,0 +1,73 @@
+{
+  "manifest_version": 3,
+  "name": "Aistos",
+  "version": "1.0.0",
+  "description": "Zero-Trust Session Sandbox. Native firewalling, ephemeral workspaces, and instant data vaporization.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "aistos@zerosandbox.privacy",
+      "strict_min_version": "115.0"
+    }
+  },
+  "permissions": [
+    "contextualIdentities",
+    "cookies",
+    "declarativeNetRequest",
+    "dns",
+    "privacy",
+    "storage",
+    "tabs",
+    "history",
+    "contextMenus",
+    "webNavigation",
+    "webRequest",
+    "webRequestBlocking",
+    "alarms"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "scripts": ["background/engine.js"],
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content/link_interceptor.js"],
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content/spa_scrubber.js"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ],
+  "action": {
+    "default_title": "Aistos Privacy Sandbox",
+    "default_popup": "ui/popup/popup.html",
+    "default_icon": {
+      "16": "icons/aistos-16.png",
+      "32": "icons/aistos-32.png",
+      "48": "icons/aistos-48.png",
+      "128": "icons/aistos-128.png"
+    }
+  },
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "static_firewall",
+        "enabled": true,
+        "path": "rules/dnr_rules.json"
+      }
+    ]
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["rules/tracking_params.json", "rules/cdn_map.json"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

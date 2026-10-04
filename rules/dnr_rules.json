@@ -1,0 +1,65 @@
+[
+  {
+    "id": 1,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "||google-analytics.com^",
+      "resourceTypes": ["script", "xmlhttprequest", "ping", "sub_frame"]
+    }
+  },
+  {
+    "id": 2,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "||doubleclick.net^",
+      "resourceTypes": ["script", "image", "xmlhttprequest", "sub_frame"]
+    }
+  },
+  {
+    "id": 3,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "||facebook.com/tr^",
+      "resourceTypes": ["script", "image", "xmlhttprequest", "ping"]
+    }
+  },
+  {
+    "id": 4,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "||scorecardresearch.com^",
+      "resourceTypes": ["script", "image", "xmlhttprequest"]
+    }
+  },
+  {
+    "id": 5,
+    "priority": 2,
+    "action": { "type": "block" },
+    "condition": {
+      "resourceTypes": ["ping"]
+    }
+  },
+  {
+    "id": 6,
+    "priority": 2,
+    "action": {
+      "type": "modifyHeaders",
+      "requestHeaders": [
+        { "header": "Sec-CH-UA", "operation": "remove" },
+        { "header": "Sec-CH-UA-Mobile", "operation": "remove" },
+        { "header": "Sec-CH-UA-Platform", "operation": "remove" },
+        { "header": "Sec-CH-UA-Platform-Version", "operation": "remove" },
+        { "header": "Sec-CH-UA-Model", "operation": "remove" }
+      ]
+    },
+    "condition": {
+      "urlFilter": "*",
+      "domainType": "thirdParty",
+      "resourceTypes": ["sub_frame", "xmlhttprequest", "script", "image"]
+    }
+  }
+]

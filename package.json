@@ -1,0 +1,19 @@
+{
+  "name": "aistos-dev-env",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local build and audit tools for the Aistos Privacy Sandbox",
+  "type": "module",
+  "scripts": {
+    "audit:permissions": "node scripts/audit_permissions.js",
+    "audit:bloat": "node scripts/audit_memory_bloat.js",
+    "audit:leaks": "node scripts/audit_memory_leaks.js",
+    "audit:all": "npm run audit:permissions && npm run audit:bloat && npm run audit:leaks",
+    "lint": "eslint .",
+    "build": "bash scripts/package_xpi.sh"
+  },
+  "devDependencies": {
+    "addons-linter": "^6.20.0",
+    "eslint": "^8.57.0"
+  }
+}

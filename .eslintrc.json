@@ -1,0 +1,28 @@
+{
+  "env": {
+    "browser": true,
+    "webextensions": true,
+    "es2024": true,
+    "node": true
+  },
+  "parserOptions": {
+    "sourceType": "module",
+    "ecmaVersion": 2024
+  },
+  "rules": {
+    "no-undef": "error",
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    "no-var": "error",
+    "prefer-const": "error",
+    "eqeqeq": ["error", "always"],
+    "no-console": ["warn", { "allow": ["warn", "error", "info"] }],
+    "no-implicit-globals": "error",
+    "strict": ["error", "global"]
+  },
+  "ignorePatterns": [
+    "dist/",
+    "node_modules/",
+    ".github/",
+    "lib/cdn_shims/"
+  ]
+}

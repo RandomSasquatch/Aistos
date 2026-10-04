@@ -1,0 +1,88 @@
+:root {
+  --bg-color: #f9f9fb;
+  --text-color: #1a1a1a;
+  --border-color: #e0e0e0;
+  --primary-color: #0061e0;
+  --primary-hover: #004db3;
+  --danger-color: #e22850;
+  --surface-color: #ffffff;
+  --radius: 6px;
+  --font-stack: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-color: #1c1b22;
+    --text-color: #fbfbfe;
+    --border-color: #38383d;
+    --surface-color: #2b2a33;
+  }
+}
+
+body {
+  font-family: var(--font-stack);
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 20px;
+  line-height: 1.5;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.card {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.btn {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.btn:hover { background: var(--primary-hover); }
+.btn.danger { background: var(--danger-color); }
+
+.drop-zone {
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius);
+  padding: 40px;
+  text-align: center;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.drop-zone.dragover {
+  border-color: var(--primary-color);
+  background: rgba(0, 97, 224, 0.05);
+}
+
+/* Native Drag and Drop List Styles */
+.sortable-list { list-style: none; padding: 0; margin: 0; }
+.sortable-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  margin-bottom: 5px;
+  background: var(--surface-color);
+  border-radius: 4px;
+  cursor: grab;
+}
+.sortable-item:active { cursor: grabbing; }

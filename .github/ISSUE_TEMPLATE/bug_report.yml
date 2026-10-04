@@ -1,0 +1,33 @@
+name: Bug Report
+description: Report an issue with Aistos breaking a site or failing to vaporize a container.
+labels: [bug, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please ensure you are running the latest version of Firefox and Aistos before submitting.
+  - type: input
+    id: version
+    attributes:
+      label: Firefox Version
+      placeholder: e.g. 118.0.2
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating System
+      placeholder: e.g. Windows 11, Arch Linux
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Provide the exact steps to reproduce the issue.
+      placeholder: |
+        1. Open a new Burner Workspace
+        2. Navigate to https://example.com
+        3. Click "Vaporize Session"
+    validations:
+      required: true

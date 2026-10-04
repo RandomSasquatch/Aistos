@@ -1,0 +1,12 @@
+{
+  "mappings": [
+    {
+      "match": "^https?://ajax\\.googleapis\\.com/ajax/libs/jquery/([0-9.]+)/jquery\\.min\\.js",
+      "redirect": "lib/cdn_shims/jquery.min.js"
+    },
+    {
+      "match": "^https?://cdnjs\\.cloudflare\\.com/ajax/libs/jquery/([0-9.]+)/jquery\\.min\\.js",
+      "redirect": "lib/cdn_shims/jquery.min.js"
+    }
+  ]
+}

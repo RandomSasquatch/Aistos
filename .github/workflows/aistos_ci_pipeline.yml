@@ -1,0 +1,44 @@
+name: Aistos Quality, Security & Memory CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  audit-and-package:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Validate Zero-Trust Permissions
+        run: node scripts/audit_permissions.js
+
+      - name: Audit Memory Bloat and Banned Frameworks
+        run: node scripts/audit_memory_bloat.js
+
+      - name: Audit Memory Leaks and Unbounded Structures
+        run: node scripts/audit_memory_leaks.js
+
+      - name: Install Mozilla Add-on Linter
+        run: npm install -g addons-linter
+
+      - name: Package and Lint Production XPI
+        run: |
+          chmod +x scripts/package_xpi.sh
+          ./scripts/package_xpi.sh
+
+      - name: Upload Packaged Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: aistos-release-xpi
+          path: dist/*.xpi
+          retention-days: 14

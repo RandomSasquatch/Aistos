@@ -1,0 +1,38 @@
+{
+  "extensionName": {
+    "message": "Aistos Entorno de Privacidad"
+  },
+  "extensionDescription": {
+    "message": "Entorno de sesión Zero-Trust. Cortafuegos nativo, espacios de trabajo efímeros y vaporización instantánea de datos."
+  },
+  "optionsDashboardTitle": {
+    "message": "Aistos Bóvedas y Cortafuegos"
+  },
+  "optionsDomainVaultsTitle": {
+    "message": "Bóvedas de Dominio (Prioridad de Reglas)"
+  },
+  "optionsDomainVaultsDesc": {
+    "message": "Arrastre y suelte las reglas para establecer la prioridad. La regla superior coincidente prevalece."
+  },
+  "optionsInputPlaceholder": {
+    "message": "ej. github.com"
+  },
+  "optionsBtnAddRule": {
+    "message": "Añadir Regla"
+  },
+  "optionsPrivacyTogglesTitle": {
+    "message": "Opciones Globales de Privacidad"
+  },
+  "optionsToggleDNR": {
+    "message": "Habilitar Bloqueo Nativo de Anuncios y Rastreadores (DNR)"
+  },
+  "optionsToggleCNAME": {
+    "message": "Habilitar Desenmascaramiento CNAME (Resolución DNS)"
+  },
+  "contextMenuCleanCopy": {
+    "message": "Copiar Enlace Limpio (Eliminar Rastreo)"
+  },
+  "contextMenuOpenBurner": {
+    "message": "Abrir Enlace en Nuevo Espacio de Trabajo Efímero"
+  }
+}

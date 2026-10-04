@@ -1,0 +1,82 @@
+{
+  "extensionName": {
+    "message": "Aistos Privacy Sandbox",
+    "description": "Name of the extension shown in the browser."
+  },
+  "extensionDescription": {
+    "message": "Zero-Trust Session Sandbox. Native firewalling, ephemeral workspaces, and instant data vaporization.",
+    "description": "Description shown in the addon store and manager."
+  },
+  "optionsDashboardTitle": {
+    "message": "Aistos Vaults & Firewall"
+  },
+  "optionsDomainVaultsTitle": {
+    "message": "Domain Vaults (Rule Priority)"
+  },
+  "optionsDomainVaultsDesc": {
+    "message": "Drag and drop rules to set priority. The top-most matching rule wins."
+  },
+  "optionsInputPlaceholder": {
+    "message": "e.g. github.com"
+  },
+  "optionsDefaultContainerOption": {
+    "message": "Default (No Container)"
+  },
+  "optionsBtnAddRule": {
+    "message": "Add Rule"
+  },
+  "optionsPrivacyTogglesTitle": {
+    "message": "Global Privacy Toggles"
+  },
+  "optionsToggleDNR": {
+    "message": "Enable Native Ad & Tracker Blocking (DNR)"
+  },
+  "optionsToggleCNAME": {
+    "message": "Enable CNAME Uncloaking (DNS Resolution)"
+  },
+  "migrationWindowTitle": {
+    "message": "Aistos Setup & Migration"
+  },
+  "migrationHeader": {
+    "message": "Aistos Setup & Migration"
+  },
+  "migrationScanTitle": {
+    "message": "1. Auto-Detect Active Logins"
+  },
+  "migrationScanDesc": {
+    "message": "Aistos can scan your current persistent cookies to securely identify sites where you are currently logged in. We will assign these to your Personal Vault so you don't get logged out."
+  },
+  "migrationBtnScan": {
+    "message": "Scan Active Logins"
+  },
+  "migrationBtnCommit": {
+    "message": "Commit Selected to Vault"
+  },
+  "migrationCADTitle": {
+    "message": "2. Import from Cookie AutoDelete (CAD)"
+  },
+  "migrationCADDesc": {
+    "message": "Migrating from CAD? Drop your \"Expressions Backup\" JSON file here to instantly transfer your Whitelists to Aistos Domain Vaults."
+  },
+  "migrationDropzoneText": {
+    "message": "Drag & Drop CAD Backup.json here or click to select file"
+  },
+  "migrationBtnFinish": {
+    "message": "Finish Setup & Open Dashboard"
+  },
+  "popupBtnNewBurner": {
+    "message": "Launch Burner Workspace"
+  },
+  "popupBtnSaveWorkspace": {
+    "message": "Save Current Workspace"
+  },
+  "popupBtnVaporizeAll": {
+    "message": "Vaporize All Sessions"
+  },
+  "contextMenuCleanCopy": {
+    "message": "Copy Clean Link (Strip Tracking)"
+  },
+  "contextMenuOpenBurner": {
+    "message": "Open Link in New Burner Workspace"
+  }
+}
