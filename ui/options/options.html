@@ -1,51 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title data-i18n="extensionName">Aistos Dashboard</title>
+  <meta charset="UTF-8">
+  <title>Aistos - Security Dashboard</title>
   <link rel="stylesheet" href="../common.css">
 </head>
 <body>
-  <div class="container">
-    <!-- Main Dashboard Header -->
-    <h2 data-i18n="optionsDashboardTitle">Aistos Vaults & Firewall</h2>
-    
-    <!-- Domain Vault Management Card -->
-    <div class="card">
-      <h3 data-i18n="optionsDomainVaultsTitle">Domain Vaults (Rule Priority)</h3>
-      <p data-i18n="optionsDomainVaultsDesc">Drag and drop rules to set priority. The top-most matching rule wins.</p>
-      
-      <!-- Rule Addition Control Group -->
-      <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-        <input type="text" id="new-domain" data-i18n="optionsInputPlaceholder" placeholder="e.g. github.com" style="flex: 1; padding: 8px;">
-        <select id="new-container" style="padding: 8px;" aria-label="Target Container">
-          <option value="firefox-default" data-i18n="optionsDefaultContainerOption">Default (No Container)</option>
-        </select>
-        <button id="btn-add-rule" class="btn" data-i18n="optionsBtnAddRule">Add Rule</button>
-      </div>
+  <div class="dashboard-container">
+    <header class="header">
+      <h1>Aistos Engine</h1>
+      <p style="color: var(--text-muted); margin-top: 5px;">Zero-Trust Architecture Configuration</p>
+    </header>
 
-      <!-- Native Drag-and-Drop Sortable Rule List -->
-      <ul id="rules-list" class="sortable-list">
-        <!-- Dynamically populated via options.js -->
-      </ul>
-    </div>
+    <main>
+      <section class="panel">
+        <h2 class="panel-title">Domain Vault Rules</h2>
+        
+        <div class="input-group">
+          <input type="text" id="new-domain" placeholder="e.g., mail.proton.me" autocomplete="off">
+          <select id="new-container">
+            <!-- Options dynamically injected -->
+          </select>
+          <button id="btn-add-rule" class="btn">Add Route</button>
+        </div>
 
-    <!-- Global Privacy Protections Card -->
-    <div class="card">
-      <h3 data-i18n="optionsPrivacyTogglesTitle">Global Privacy Toggles</h3>
-      <label style="display: block; margin-bottom: 10px; cursor: pointer;">
-        <input type="checkbox" id="toggle-dnr" checked> 
-        <span data-i18n="optionsToggleDNR">Enable Native Ad & Tracker Blocking (DNR)</span>
-      </label>
-      <label style="display: block; margin-bottom: 10px; cursor: pointer;">
-        <input type="checkbox" id="toggle-cname" checked> 
-        <span data-i18n="optionsToggleCNAME">Enable CNAME Uncloaking (DNS Resolution)</span>
-      </label>
-    </div>
+        <ul id="rules-list">
+          <!-- Vault items dynamically injected -->
+        </ul>
+      </section>
+    </main>
   </div>
 
-  <!-- Zero-Framework Controllers -->
-  <script type="module" src="options.js"></script>
-  <script type="module" src="../i18n_renderer.js"></script>
+  <script src="options.js"></script>
 </body>
 </html>

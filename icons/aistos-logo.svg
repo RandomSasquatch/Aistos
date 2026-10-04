@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Solid Dark Background -->
+  <rect width="512" height="512" rx="112" fill="#0F172A"/>
+  
+  <!-- Outer Stealth Shield (Left side solid, right side breaking up) -->
+  <path d="M256 70 L120 180 L140 380 L256 440 L372 380 L392 180 Z" fill="none" stroke="#F97316" stroke-width="28" stroke-linejoin="round"/>
+  
+  <!-- Internal 'A' Structure -->
+  <path d="M256 150 L180 290 L332 290 Z" fill="#F97316"/>
+  <path d="M200 340 L185 370 M312 340 L327 370" stroke="#F97316" stroke-width="28" stroke-linecap="round"/>
+  
+  <!-- Vaporization Nodes (The Ephemeral Feature) -->
+  <rect x="340" y="100" width="24" height="24" rx="4" fill="#F97316"/>
+  <rect x="390" y="140" width="24" height="24" rx="4" fill="#F97316"/>
+  <rect x="410" y="220" width="24" height="24" rx="4" fill="#F97316"/>
+  <rect x="380" y="280" width="16" height="16" rx="4" fill="#F97316"/>
+  <rect x="420" y="330" width="20" height="20" rx="4" fill="#F97316"/>
+</svg>

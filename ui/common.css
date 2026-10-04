@@ -1,88 +1,158 @@
 :root {
-  --bg-color: #f9f9fb;
-  --text-color: #1a1a1a;
-  --border-color: #e0e0e0;
-  --primary-color: #0061e0;
-  --primary-hover: #004db3;
-  --danger-color: #e22850;
-  --surface-color: #ffffff;
-  --radius: 6px;
-  --font-stack: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --bg-core: #0f172a;
+  --bg-surface: #1e293b;
+  --bg-hover: #334155;
+  --accent-primary: #f97316;
+  --accent-glow: rgba(249, 115, 22, 0.4);
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --border-subtle: #334155;
+  --danger: #ef4444;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg-color: #1c1b22;
-    --text-color: #fbfbfe;
-    --border-color: #38383d;
-    --surface-color: #2b2a33;
-  }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  font-family: var(--font-stack);
-  background-color: var(--bg-color);
-  color: var(--text-color);
-  margin: 0;
-  padding: 20px;
-  line-height: 1.5;
+  font-family: system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-core);
+  color: var(--text-main);
+  line-height: 1.6;
+  padding: 2rem;
+  display: flex;
+  justify-content: center;
 }
 
-.container {
+.dashboard-container {
   max-width: 800px;
-  margin: 0 auto;
+  width: 100%;
 }
 
-.card {
-  background: var(--surface-color);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius);
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+.header {
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 1rem;
+  margin-bottom: 2rem;
 }
 
-.btn {
-  background: var(--primary-color);
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: var(--radius);
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: background 0.2s;
+.header h1 {
+  font-size: 1.8rem;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.btn:hover { background: var(--primary-hover); }
-.btn.danger { background: var(--danger-color); }
+.header h1::before {
+  content: "";
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  background-color: var(--accent-primary);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--accent-glow);
+}
 
-.drop-zone {
-  border: 2px dashed var(--border-color);
-  border-radius: var(--radius);
-  padding: 40px;
-  text-align: center;
-  color: var(--text-color);
-  cursor: pointer;
+.panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.panel-title {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Form Controls */
+.input-group {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+input[type="text"], select {
+  flex: 1;
+  background: var(--bg-core);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  outline: none;
   transition: border-color 0.2s;
 }
 
-.drop-zone.dragover {
-  border-color: var(--primary-color);
-  background: rgba(0, 97, 224, 0.05);
+input[type="text"]:focus, select:focus {
+  border-color: var(--accent-primary);
 }
 
-/* Native Drag and Drop List Styles */
-.sortable-list { list-style: none; padding: 0; margin: 0; }
-.sortable-item {
+button.btn {
+  background: var(--accent-primary);
+  color: #fff;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+button.btn:hover {
+  background: #ea580c;
+  box-shadow: 0 0 15px var(--accent-glow);
+}
+
+/* Vault Rules List */
+ul#rules-list {
+  list-style: none;
+}
+
+li.sortable-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px;
-  border: 1px solid var(--border-color);
-  margin-bottom: 5px;
-  background: var(--surface-color);
-  border-radius: 4px;
+  background: var(--bg-core);
+  padding: 1rem;
+  margin-bottom: 0.5rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
   cursor: grab;
+  transition: transform 0.1s, border-color 0.2s;
 }
-.sortable-item:active { cursor: grabbing; }
+
+li.sortable-item:active {
+  cursor: grabbing;
+  transform: scale(0.99);
+}
+
+li.sortable-item:hover {
+  border-color: var(--bg-hover);
+}
+
+li.sortable-item small {
+  color: var(--accent-primary);
+  font-family: monospace;
+  margin-left: 10px;
+}
+
+button.btn-remove {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid transparent;
+  padding: 0.4rem 0.8rem;
+}
+
+button.btn-remove:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger);
+  border-color: var(--danger);
+  box-shadow: none;
+}
