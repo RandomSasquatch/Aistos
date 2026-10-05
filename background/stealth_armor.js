@@ -1,7 +1,7 @@
 /**
  * Aistos Stealth Armor Engine
- * Context-aware dynamic anti-fingerprinting. Applies Tor-uplift mitigations
- * and WebRTC deactivation strictly when inside Burner workspaces.
+ * Localized Burner tab anti-fingerprinting. 
+ * Kills WebRTC IP leaks natively inside the DOM without mutating global browser prefs.
  */
 
 import { isBurner } from "./container_manager.js";
@@ -9,68 +9,34 @@ import { isBurner } from "./container_manager.js";
 const PRIVATE_SUBNET_REGEX = /^(localhost|127\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[0-1])\.\d+\.\d+|169\.254\.\d+\.\d+|\[?::1\]?)$/i;
 
 export function setupStealthArmor() {
-  // Focus listener: switches privacy postures instantly when the user switches tabs
-  browser.tabs.onActivated.addListener(async (activeInfo) => {
-    try {
-      const tab = await browser.tabs.get(activeInfo.tabId);
-      await evaluateTabPrivacyPosture(tab);
-    } catch (err) {
-      console.warn("[Aistos] Failed to evaluate focus stealth posture:", err);
-    }
-  });
+  // Uses onUpdated to intercept new page loads and inject spoofing before DOM executes
+  browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+    if (changeInfo.status === "loading" && tab.cookieStoreId && isBurner(tab.cookieStoreId)) {
+      try {
+        const isLocal = isLocalOrPrivateSubnet(new URL(tab.url).hostname);
+        if (isLocal) return; // Allow internal WebRTC (routers, local dev)
 
-  browser.windows.onFocusChanged.addListener(async (windowId) => {
-    if (windowId === browser.windows.WINDOW_ID_NONE) return;
-    try {
-      const [activeTab] = await browser.tabs.query({ active: true, windowId });
-      if (activeTab) {
-        await evaluateTabPrivacyPosture(activeTab);
+        // Inject the WebRTC Nullifier specifically into the Burner's execution context
+        await browser.scripting.executeScript({
+          target: { tabId: tabId, allFrames: true },
+          func: () => {
+            // Shadow DOM overriding of WebRTC APIs to prevent IP leakage
+            const noOpRTC = function() {
+              throw new Error("Aistos Stealth Armor: WebRTC disabled in Ephemeral Workspace.");
+            };
+            Object.defineProperty(window, 'RTCPeerConnection', { value: noOpRTC, writable: false });
+            Object.defineProperty(window, 'webkitRTCPeerConnection', { value: noOpRTC, writable: false });
+          },
+          injectImmediately: true
+        });
+      } catch (err) {
+        // Suppressed: execution naturally fails on restricted about:* pages
       }
-    } catch (err) {
-      console.warn("[Aistos] Focus change stealth posture update failed:", err);
     }
   });
 }
 
-export function isLocalOrPrivateSubnet(hostname) {
+function isLocalOrPrivateSubnet(hostname) {
   if (!hostname) return false;
   return PRIVATE_SUBNET_REGEX.test(hostname.trim());
-}
-
-async function evaluateTabPrivacyPosture(tab) {
-  if (!tab || !tab.cookieStoreId) return;
-
-  // Verify if destination is private subnet / localhost
-  let isLocal = false;
-  if (tab.url && !tab.url.startsWith("about:")) {
-    try {
-      isLocal = isLocalOrPrivateSubnet(new URL(tab.url).hostname);
-    } catch {
-      isLocal = false;
-    }
-  }
-
-  const inBurner = isBurner(tab.cookieStoreId) && !isLocal;
-
-  if (inBurner) {
-    // Maximum Protection for Burner Container: Zero WebRTC leak, Native Tor-Farbling
-    try {
-      await browser.privacy.network.peerConnectionEnabled.set({ value: false });
-      if (browser.privacy.websites.resistFingerprinting) {
-        await browser.privacy.websites.resistFingerprinting.set({ value: true });
-      }
-    } catch (e) {
-      console.warn("[Aistos] Failed to engage strict stealth armor:", e);
-    }
-  } else {
-    // Normal / Vault Container: Clear overrides to restore Meet/Zoom/WebGL performance
-    try {
-      await browser.privacy.network.peerConnectionEnabled.clear({});
-      if (browser.privacy.websites.resistFingerprinting) {
-        await browser.privacy.websites.resistFingerprinting.clear({});
-      }
-    } catch (e) {
-      console.warn("[Aistos] Failed to revert stealth armor:", e);
-    }
-  }
 }

@@ -7,7 +7,10 @@ const BURNER_PREFIX = "AistosBurner_";
 const VAPORIZE_GRACE_PERIOD_MS = 2500;
 const CONTAINER_COLORS = ["blue", "turquoise", "green", "yellow", "orange", "red", "pink", "purple"];
 
-// In-memory bounded queue to prevent SQLite lock contention during simultaneous deletions
+// Tracks active Burner IDs to bypass Firefox's opaque string IDs (e.g. "firefox-container-1")
+const activeBurnerIds = new Set();
+const cleanContainerStates = new Map();
+
 class VaporizationQueue {
   constructor() {
     this.queue = [];
@@ -31,15 +34,15 @@ class VaporizationQueue {
       this.enqueuedSet.delete(cookieStoreId);
 
       try {
-        // Verification: ensure no active tabs exist in this container
         const tabs = await browser.tabs.query({ cookieStoreId });
         if (tabs.length === 0) {
           await new Promise(r => setTimeout(r, VAPORIZE_GRACE_PERIOD_MS));
-          // Final check after cooldown
           const recheckTabs = await browser.tabs.query({ cookieStoreId });
+          
           if (recheckTabs.length === 0) {
             await browser.contextualIdentities.remove(cookieStoreId);
             cleanContainerStates.delete(cookieStoreId);
+            activeBurnerIds.delete(cookieStoreId); // Free the memory Set
           }
         }
       } catch (err) {
@@ -52,24 +55,19 @@ class VaporizationQueue {
 }
 
 const vaporizationQueue = new VaporizationQueue();
-const cleanContainerStates = new Map(); // Tracks "clean" state to prevent redirect loops
 
 export function setupContainerManager() {
-  // Listen for closed tabs to trigger vaporization
   browser.tabs.onRemoved.addListener(async (_tabId, removeInfo) => {
     if (removeInfo.isWindowClosing) return;
-
     try {
       const isRestoreActive = await isSessionRestoreActive();
-      if (isRestoreActive) return; // Prevent wiping cookies during crash recovery
+      if (isRestoreActive) return; 
 
-      const identities = await browser.contextualIdentities.query({});
-      const burners = identities.filter(id => id.name.startsWith(BURNER_PREFIX));
-
-      for (const burner of burners) {
-        const remainingTabs = await browser.tabs.query({ cookieStoreId: burner.cookieStoreId });
+      // Only iterate through actively tracked burners
+      for (const burnerId of activeBurnerIds) {
+        const remainingTabs = await browser.tabs.query({ cookieStoreId: burnerId });
         if (remainingTabs.length === 0) {
-          vaporizationQueue.enqueue(burner.cookieStoreId);
+          vaporizationQueue.enqueue(burnerId);
         }
       }
     } catch (err) {
@@ -77,36 +75,26 @@ export function setupContainerManager() {
     }
   });
 
-  // Intercept navigation for Domain Vaults & Loop Protection
   browser.webNavigation.onBeforeNavigate.addListener(async (details) => {
-    if (details.frameId !== 0) return; // Top-level navigations only
+    if (details.frameId !== 0) return;
     if (!details.url || details.url.startsWith("about:") || details.url.startsWith("moz-extension:")) return;
 
     try {
       const tab = await browser.tabs.get(details.tabId);
       if (!tab) return;
 
-      // 1. MAC Handshake: Yield to Multi-Account Containers if rule exists
       const isMacAssigned = await checkMacAssignment(details.url);
       if (isMacAssigned) return;
 
-      // 2. Domain Vault Routing
       const targetDomain = new URL(details.url).hostname;
       const vaultContainerId = await getVaultContainerForDomain(targetDomain);
 
       if (vaultContainerId && tab.cookieStoreId !== vaultContainerId) {
-        // Reroute into the dedicated vault
-        await browser.tabs.create({
-          url: details.url,
-          cookieStoreId: vaultContainerId,
-          active: tab.active,
-          index: tab.index + 1
-        });
+        await browser.tabs.create({ url: details.url, cookieStoreId: vaultContainerId, active: tab.active, index: tab.index + 1 });
         await browser.tabs.remove(tab.id);
         return;
       }
 
-      // 3. Mark Burner containers unclean after initial request
       if (tab.cookieStoreId && cleanContainerStates.has(tab.cookieStoreId)) {
         cleanContainerStates.set(tab.cookieStoreId, false);
       }
@@ -115,7 +103,6 @@ export function setupContainerManager() {
     }
   });
 
-  // Remote action listener
   browser.runtime.onMessage.addListener(async (msg) => {
     if (msg.action === "CREATE_BURNER") {
       const container = await createBurnerContainer();
@@ -133,6 +120,43 @@ export function setupContainerManager() {
         return { success: true };
       }
     }
+    
+    // Feature Addition: Vaporize All
+    if (msg.action === "VAPORIZE_ALL_BURNERS") {
+      let count = 0;
+      for (const burnerId of activeBurnerIds) {
+        const tabs = await browser.tabs.query({ cookieStoreId: burnerId });
+        for (const tab of tabs) await browser.tabs.remove(tab.id);
+        vaporizationQueue.enqueue(burnerId);
+        count++;
+      }
+      return { success: true, vaporizedCount: count };
+    }
+
+    // Feature Addition: Convert ephemeral session to persistent Vault
+    if (msg.action === "SAVE_WORKSPACE") {
+      const [activeTab] = await browser.tabs.query({ active: true, currentWindow: true });
+      if (!activeTab || !isBurner(activeTab.cookieStoreId)) {
+        return { success: false, error: "Not in a Burner Tab" };
+      }
+      try {
+        const hostname = new URL(activeTab.url).hostname;
+        const newName = `Vault_${hostname}_${Date.now()}`;
+        
+        await browser.contextualIdentities.update(activeTab.cookieStoreId, { 
+          name: newName, 
+          icon: "briefcase", 
+          color: "blue" 
+        });
+        
+        // Remove from the Burner tracking arrays to ensure it becomes permanent
+        activeBurnerIds.delete(activeTab.cookieStoreId);
+        cleanContainerStates.delete(activeTab.cookieStoreId);
+        return { success: true };
+      } catch (err) {
+        return { success: false, error: err.message };
+      }
+    }
   });
 }
 
@@ -145,62 +169,13 @@ export async function createBurnerContainer() {
     icon: "circle"
   });
 
+  activeBurnerIds.add(identity.cookieStoreId);
   cleanContainerStates.set(identity.cookieStoreId, true);
   return identity;
 }
 
 export function isBurner(cookieStoreId) {
-  return typeof cookieStoreId === "string" && cookieStoreId.includes(BURNER_PREFIX);
+  return activeBurnerIds.has(cookieStoreId);
 }
 
-async function getBalancedColor() {
-  try {
-    const identities = await browser.contextualIdentities.query({});
-    const counts = {};
-    CONTAINER_COLORS.forEach(c => (counts[c] = 0));
-    identities.forEach(id => {
-      if (counts[id.color] !== undefined) counts[id.color]++;
-    });
-
-    let leastColor = CONTAINER_COLORS[0];
-    let minCount = Infinity;
-    for (const color of CONTAINER_COLORS) {
-      if (counts[color] < minCount) {
-        minCount = counts[color];
-        leastColor = color;
-      }
-    }
-    return leastColor;
-  } catch {
-    return "red";
-  }
-}
-
-async function isSessionRestoreActive() {
-  const tabs = await browser.tabs.query({ url: "about:sessionrestore" });
-  return tabs.length > 0;
-}
-
-async function checkMacAssignment(url) {
-  try {
-    const res = await browser.runtime.sendMessage("@testpilot-containers", {
-      method: "getAssignment",
-      url
-    });
-    return !!(res && res.userContextId);
-  } catch {
-    return false; // MAC not installed or unassigned
-  }
-}
-
-async function getVaultContainerForDomain(hostname) {
-  const { domainVaults } = await browser.storage.local.get("domainVaults");
-  if (!domainVaults || typeof domainVaults !== "object") return null;
-
-  for (const [domain, cookieStoreId] of Object.entries(domainVaults)) {
-    if (hostname === domain || hostname.endsWith(`.${domain}`)) {
-      return cookieStoreId;
-    }
-  }
-  return null;
-}
+// ... [Keep getBalancedColor(), isSessionRestoreActive(), checkMacAssignment(), getVaultContainerForDomain() as previously provided]

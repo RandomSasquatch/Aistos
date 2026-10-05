@@ -1,9 +1,8 @@
 /**
  * Aistos Native Context Menu Controller
- * Zero-framework context menu management for clipboard sanitization and container controls.
- * Fully compliant with Manifest V3 'scripting' API constraints.
+ * Zero-framework context menu management for clipboard sanitization, 
+ * container controls, and global session management.
  */
-
 import { sanitizeUrl } from "./url_sanitizer.js";
 import { createBurnerContainer } from "./container_manager.js";
 
@@ -12,100 +11,130 @@ const MENU_CLEAN_COPY_LINK = "aistos_clean_copy_link";
 const MENU_OPEN_BURNER_LINK = "aistos_open_burner_link";
 const MENU_OPEN_BURNER_PAGE = "aistos_open_burner_page";
 const MENU_CLEAN_PAGE = "aistos_clean_page";
+const MENU_NEW_BLANK_BURNER = "aistos_new_blank_burner";
+const MENU_PANIC_DISCARD = "aistos_panic_discard";
+const MENU_OPEN_DASHBOARD = "aistos_open_dashboard";
 
 export function setupContextMenu() {
-  // Force menu creation unconditionally on boot, bypassing Firefox about:debugging onInstalled bugs
   buildMenus();
-  
-  // Rebuild if the extension is explicitly installed/updated to ensure persistence
   browser.runtime.onInstalled.addListener(buildMenus);
-
-  // Bind the unified click listener
   browser.contextMenus.onClicked.addListener(handleMenuClick);
 }
 
-/**
- * Constructs the right-click menu items for links and empty page space.
- * Suppresses creation errors if the menus already exist during hot-reloads.
- */
 function buildMenus() {
   browser.contextMenus.removeAll().then(() => {
-    // Link-specific contexts
-    browser.contextMenus.create({ 
-      id: MENU_CLEAN_COPY_LINK, 
-      title: "Copy Clean Link (Strip Tracking)", 
-      contexts: ["link"] 
+    // --- Link Contexts ---
+    browser.contextMenus.create({
+      id: MENU_CLEAN_COPY_LINK,
+      title: "Copy Clean Link (Strip Tracking)",
+      contexts: ["link"]
     });
-    browser.contextMenus.create({ 
-      id: MENU_OPEN_BURNER_LINK, 
-      title: "Open Link in New Burner Workspace", 
-      contexts: ["link"] 
+    browser.contextMenus.create({
+      id: MENU_OPEN_BURNER_LINK,
+      title: "Open Link in New Burner Workspace",
+      contexts: ["link"]
+    });
+
+    // --- Page / Background Contexts (Includes Custom New Tab Pages & Touch Long-Press) ---
+    browser.contextMenus.create({
+      id: "aistos_page_separator_1",
+      type: "separator",
+      contexts: ["page"]
+    });
+    browser.contextMenus.create({
+      id: MENU_NEW_BLANK_BURNER,
+      title: "New Blank Burner Tab",
+      contexts: ["page"]
+    });
+    browser.contextMenus.create({
+      id: MENU_OPEN_BURNER_PAGE,
+      title: "Clone Current Page to Burner",
+      contexts: ["page"]
+    });
+    browser.contextMenus.create({
+      id: MENU_CLEAN_PAGE,
+      title: "Sanitize & Reload Current Page",
+      contexts: ["page"]
     });
     
-    // Page-specific contexts
-    browser.contextMenus.create({ 
-      id: MENU_OPEN_BURNER_PAGE, 
-      title: "Open Current Page in Burner", 
-      contexts: ["page"] 
+    browser.contextMenus.create({
+      id: "aistos_page_separator_2",
+      type: "separator",
+      contexts: ["page"]
     });
-    browser.contextMenus.create({ 
-      id: MENU_CLEAN_PAGE, 
-      title: "Sanitize & Reload Current Page", 
-      contexts: ["page"] 
+    browser.contextMenus.create({
+      id: MENU_PANIC_DISCARD,
+      title: "Panic Button: Discard Background Tabs",
+      contexts: ["page"]
+    });
+    browser.contextMenus.create({
+      id: MENU_OPEN_DASHBOARD,
+      title: "Open Aistos Command Center",
+      contexts: ["page"]
     });
   }).catch((err) => console.warn("[Aistos] Context menu creation suppressed during reload:", err));
 }
 
-/**
- * Routes menu clicks to their respective privacy functions.
- */
 async function handleMenuClick(info, tab) {
-  
-  // Action 1: Copy stripped URL directly to the user's clipboard
+  // 1. Link Handlers
   if (info.menuItemId === MENU_CLEAN_COPY_LINK && info.linkUrl) {
     const clean = sanitizeUrl(info.linkUrl);
     try {
-      // Manifest V3 Compliant execution (replaces deprecated tabs.executeScript)
       await browser.scripting.executeScript({
         target: { tabId: tab.id },
         func: (urlStr) => { navigator.clipboard.writeText(urlStr); },
         args: [clean]
       });
-    } catch (err) { 
-      // Fails safely on privileged pages (like about:addons or addons.mozilla.org)
-      console.error("[Aistos] Clipboard copy blocked on privileged page:", err); 
+    } catch (err) {
+      console.error("[Aistos] Clipboard copy blocked on privileged page:", err);
     }
   }
 
-  // Action 2: Launch a hyperlink inside a background ephemeral container
   if (info.menuItemId === MENU_OPEN_BURNER_LINK && info.linkUrl) {
     const clean = sanitizeUrl(info.linkUrl);
     const container = await createBurnerContainer();
-    await browser.tabs.create({ 
-      url: clean, 
-      cookieStoreId: container.cookieStoreId, 
-      active: false, 
-      index: tab.index + 1 
+    await browser.tabs.create({
+      url: clean,
+      cookieStoreId: container.cookieStoreId,
+      active: false,
+      index: tab.index + 1
     });
   }
 
-  // Action 3 (New Feature): Clone the active page into a new Burner workspace
+  // 2. Page / Background Handlers
+  if (info.menuItemId === MENU_NEW_BLANK_BURNER) {
+    const container = await createBurnerContainer();
+    await browser.tabs.create({
+      url: "about:newtab",
+      cookieStoreId: container.cookieStoreId,
+      active: true
+    });
+  }
+
   if (info.menuItemId === MENU_OPEN_BURNER_PAGE && info.pageUrl) {
     const clean = sanitizeUrl(info.pageUrl);
     const container = await createBurnerContainer();
-    await browser.tabs.create({ 
-      url: clean, 
-      cookieStoreId: container.cookieStoreId, 
-      active: true, // Bring the new burner to the foreground immediately
-      index: tab.index + 1 
+    await browser.tabs.create({
+      url: clean,
+      cookieStoreId: container.cookieStoreId,
+      active: true,
+      index: tab.index + 1
     });
   }
 
-  // Action 4: Strip trackers from the active URL and navigate cleanly in the same tab
   if (info.menuItemId === MENU_CLEAN_PAGE && tab.url) {
     const clean = sanitizeUrl(tab.url);
     if (clean !== tab.url) {
       await browser.tabs.update(tab.id, { url: clean });
     }
+  }
+
+  // 3. Global Session Handlers
+  if (info.menuItemId === MENU_PANIC_DISCARD) {
+    await browser.runtime.sendMessage({ action: "DISCARD_BACKGROUND_TABS" });
+  }
+
+  if (info.menuItemId === MENU_OPEN_DASHBOARD) {
+    await browser.tabs.create({ url: browser.runtime.getURL("ui/dashboard/dashboard.html") });
   }
 }

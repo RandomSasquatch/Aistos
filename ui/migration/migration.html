@@ -1,43 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title data-i18n="migrationWindowTitle">Aistos Setup & Migration</title>
+  <meta charset="UTF-8">
+  <title>Aistos Setup & Migration</title>
   <link rel="stylesheet" href="../common.css">
 </head>
 <body>
-  <div class="container">
-    <h2 data-i18n="migrationHeader">Aistos Setup & Migration</h2>
-    
-    <!-- Active Login Auto-Detection Section -->
-    <div class="card">
-      <h3 data-i18n="migrationScanTitle">1. Auto-Detect Active Logins</h3>
-      <p data-i18n="migrationScanDesc">Aistos can scan your current persistent cookies to securely identify sites where you are currently logged in. We will assign these to your Personal Vault so you don't get logged out.</p>
-      <button id="btn-scan" class="btn" data-i18n="migrationBtnScan">Scan Active Logins</button>
-      
-      <div id="scan-results" style="display: none; margin-top: 15px;">
-        <ul id="detected-logins-list" style="list-style: none; padding: 0;"></ul>
-        <button id="btn-commit-logins" class="btn" data-i18n="migrationBtnCommit">Commit Selected to Vault</button>
-      </div>
-    </div>
+  <div class="dashboard-container">
+    <header class="header"><h1>Aistos Setup & Migration</h1></header>
 
-    <!-- Cookie AutoDelete (CAD) JSON Migration Section -->
-    <div class="card">
-      <h3 data-i18n="migrationCADTitle">2. Import from Cookie AutoDelete (CAD)</h3>
-      <p data-i18n="migrationCADDesc">Migrating from CAD? Drop your "Expressions Backup" JSON file here to instantly transfer your Whitelists to Aistos Domain Vaults.</p>
-      <div id="cad-dropzone" class="drop-zone">
-        <span data-i18n="migrationDropzoneText">Drag & Drop CAD Backup.json here or click to select file</span>
+    <section class="panel">
+      <h2 class="panel-title">1. Auto-Detect Active Logins</h2>
+      <p style="color: var(--text-muted); margin-bottom: 1rem;">Scan persistent cookies to assign logged-in sites to your Personal Vault.</p>
+      <button id="btn-scan" class="btn">Scan Active Logins</button>
+      <div id="scan-results" style="display: none; margin-top: 1.5rem;">
+        <ul id="detected-logins-list" style="list-style: none; margin-bottom: 1rem;"></ul>
+        <button id="btn-commit-logins" class="btn" style="display: none;">Commit Selected to Vault</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 class="panel-title">2. Import from Cookie AutoDelete (CAD)</h2>
+      <div id="cad-dropzone" style="border: 2px dashed var(--border-subtle); padding: 2rem; text-align: center; border-radius: 8px; cursor: pointer;">
+        <p>Drag & Drop CAD Backup.json here or click to select file</p>
         <input type="file" id="cad-file-input" accept=".json" style="display: none;">
+        <div id="cad-status" style="margin-top: 1rem; font-weight: 600;"></div>
       </div>
-      <p id="cad-status" style="margin-top: 10px; font-weight: bold;"></p>
-    </div>
-    
-    <!-- Onboarding Completion Action -->
-    <button id="btn-finish" class="btn" style="width: 100%; margin-top: 20px;" data-i18n="migrationBtnFinish">Finish Setup & Open Dashboard</button>
-  </div>
+    </section>
 
-  <!-- Zero-Framework Controllers -->
-  <script type="module" src="migration.js"></script>
-  <script type="module" src="../i18n_renderer.js"></script>
+    <button id="btn-finish" class="btn" style="width: 100%; margin-top: 1rem;">Finish Setup & Open Dashboard</button>
+  </div>
+  <script src="migration.js" type="module"></script>
 </body>
 </html>

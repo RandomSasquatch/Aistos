@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aistos Command Center</title>
+  <link rel="stylesheet" href="../common.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <header class="header">
+      <h1 data-i18n="dashboard_title">Aistos Command Center</h1>
+    </header>
+
+    <!-- Panic Button & Memory Control -->
+    <section class="panel">
+      <h2 class="panel-title" data-i18n="panic_title">Memory & Session Control</h2>
+      <button id="panic-btn" class="btn" style="background: var(--danger);" data-i18n="panic_btn">
+        Panic Button: Discard Background Tabs
+      </button>
+      <p style="color: var(--text-muted); margin-top: 1rem; font-size: 0.9rem;" data-i18n="panic_desc">
+        Instantly flushes background workspace tabs from RAM to freeze tracker execution and reclaim memory.
+      </p>
+      <div id="panic-status" style="margin-top: 1rem; color: var(--accent-primary); font-weight: 600;"></div>
+    </section>
+
+    <!-- Domain Vaults Routing -->
+    <section class="panel">
+      <h2 class="panel-title" data-i18n="vaults_title">Domain Vaults</h2>
+      <p style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.9rem;" data-i18n="vaults_desc">
+        Route specific domains into dedicated, persistent containers.
+      </p>
+      <div class="input-group">
+        <input type="text" id="vault-domain" placeholder="e.g., github.com" data-i18n-placeholder="vault_placeholder">
+        <select id="vault-container-select"></select>
+        <button id="add-vault-btn" class="btn" data-i18n="vault_add">Assign Vault</button>
+      </div>
+      <ul id="rules-list">
+        <!-- Populated dynamically by dashboard.js -->
+      </ul>
+    </section>
+  </div>
+
+  <script src="../i18n_renderer.js" type="module"></script>
+  <script src="dashboard.js" type="module"></script>
+</body>
+</html>

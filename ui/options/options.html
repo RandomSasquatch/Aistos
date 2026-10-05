@@ -7,30 +7,18 @@
 </head>
 <body>
   <div class="dashboard-container">
-    <header class="header">
-      <h1>Aistos Engine</h1>
-      <p style="color: var(--text-muted); margin-top: 5px;">Zero-Trust Architecture Configuration</p>
-    </header>
+    <header class="header"><h1>Aistos Engine: Domain Vaults</h1></header>
 
-    <main>
-      <section class="panel">
-        <h2 class="panel-title">Domain Vault Rules</h2>
-        
-        <div class="input-group">
-          <input type="text" id="new-domain" placeholder="e.g., mail.proton.me" autocomplete="off">
-          <select id="new-container">
-            <!-- Options dynamically injected -->
-          </select>
-          <button id="btn-add-rule" class="btn">Add Route</button>
-        </div>
-
-        <ul id="rules-list">
-          <!-- Vault items dynamically injected -->
-        </ul>
-      </section>
-    </main>
+    <section class="panel">
+      <h2 class="panel-title">Zero-Trust Architecture Configuration</h2>
+      <div class="input-group">
+        <input type="text" id="new-domain" placeholder="e.g., github.com">
+        <select id="new-container"></select>
+        <button id="btn-add-rule" class="btn">Add Route</button>
+      </div>
+      <ul id="rules-list"></ul>
+    </section>
   </div>
-
-  <script src="options.js"></script>
+  <script src="options.js" type="module"></script>
 </body>
 </html>

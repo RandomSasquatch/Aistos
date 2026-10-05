@@ -2,24 +2,29 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <link rel="stylesheet" href="popup.css">
+  <link rel="stylesheet" href="../common.css">
+  <style>
+    body { padding: 1.5rem; min-width: 280px; }
+    .header { text-align: center; margin-bottom: 1.5rem; }
+    .header h1 { font-size: 1.3rem; margin-bottom: 0.25rem; }
+    .header .subtitle { color: var(--text-muted); font-size: 0.8rem; }
+    .content { display: flex; flex-direction: column; gap: 0.75rem; }
+    .btn.danger:hover { background: #dc2626; box-shadow: 0 0 15px rgba(239,68,68,0.4); }
+  </style>
 </head>
 <body>
-  <!-- Extension Toolbar Header -->
   <div class="header">
     <h1 data-i18n="extensionName">Aistos</h1>
     <span class="subtitle" data-i18n="extensionDescription">Zero-Trust Sandbox</span>
   </div>
   
-  <!-- Interactive Action Controls -->
   <div class="content">
     <button id="btn-new-burner" class="btn primary" data-i18n="popupBtnNewBurner">Launch Burner Workspace</button>
     <button id="btn-save-workspace" class="btn secondary" data-i18n="popupBtnSaveWorkspace">Save Current Workspace</button>
-    <hr style="border: 0; border-top: 1px solid var(--border-color, #e0e0e0); margin: 12px 0;">
+    <hr style="border: 0; border-top: 1px solid var(--border-subtle); margin: 12px 0;">
     <button id="btn-vaporize-all" class="btn danger" data-i18n="popupBtnVaporizeAll">Vaporize All Sessions</button>
   </div>
 
-  <!-- Zero-Framework Controllers (Unified as type="module") -->
   <script type="module" src="popup.js"></script>
   <script type="module" src="../i18n_renderer.js"></script>
 </body>

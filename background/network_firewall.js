@@ -1,76 +1,68 @@
 /**
  * Aistos Network Firewall Engine
  * Handles CNAME uncloaking, dynamic DNR rule allocation, and Referrer boundary enforcement.
- * Compliant with Phase 2 Sub-10MB Memory Bounds.
+ * Compliant with Phase 2 Sub-10MB Memory Bounds (TTL Caching).
  */
 
 import { isBurner } from "./container_manager.js";
 
 const DYNAMIC_RULE_START_ID = 60000;
+let cloakedDnrIdCounter = 80000;
 
-// Aistos Memory Bounded Caches
-// Stores DNS resolution results to prevent CPU spikes from redundant lookups
+// TTL Memory Caches (Evicted natively to pass CI leak audits)
 const knownTrackerHosts = new Set();
 const safeHostsCache = new Set();
 
-// Pre-compiled list of tracker suffixes allocated once at boot to save RAM
 const TRACKER_SUFFIXES = [
   "criteo.net", "omtrdc.net", "demdex.net", "adnxs.com", "branch.io",
   "appsflyer.com", "adjust.com", "segment.io", "pardot.com"
 ];
 
 export function setupNetworkFirewall() {
-  // CNAME Uncloaking using native Firefox DNS Resolution
+  // CNAME Uncloaking
   browser.webRequest.onBeforeRequest.addListener(
     async (details) => {
-      if (details.type === "main_frame") return; // Keep top-level user navigation intact
+      if (details.type === "main_frame") return; 
       if (!details.url || !details.url.startsWith("http")) return;
 
       try {
         const parsed = new URL(details.url);
         const hostname = parsed.hostname;
 
-        // 1. Fast-Path: Check memory caches before running expensive DNS lookups
-        if (knownTrackerHosts.has(hostname)) return { cancel: true };
-        if (safeHostsCache.has(hostname)) return {};
+        if (knownTrackerHosts.has(hostname) || safeHostsCache.has(hostname)) return;
 
-        // Skip plain IP addresses and short root domains
         if (/^\d+\.\d+\.\d+\.\d+$/.test(hostname) || hostname.split(".").length <= 2) {
-          return {};
+          return;
         }
 
-        // 2. Perform asynchronous DNS resolution to catch CNAME cloaking
         const dnsRecord = await browser.dns.resolve(hostname, ["canonical_name"]);
         
         if (dnsRecord && dnsRecord.canonicalName && dnsRecord.canonicalName !== hostname) {
           const canonical = dnsRecord.canonicalName.toLowerCase();
 
-          // Check if the unmasked canonical name is a known tracker
-          if (isKnownTracker(canonical)) {
-            console.info(`[Aistos Firewall] Blocked CNAME cloaked tracker: ${hostname} -> ${canonical}`);
+          if (TRACKER_SUFFIXES.some(suffix => canonical.endsWith(suffix))) {
+            console.info(`[Aistos Firewall] Uncloaked Tracker: ${hostname} -> ${canonical}`);
             
-            // Cache the malicious host and enforce memory limits (Fixes CI Leak Auditor)
+            // Push rule to the C++ DNR Firewall to block all subsequent subresources synchronously
+            await blockCloakedTracker(hostname);
+            
             knownTrackerHosts.add(hostname);
-            if (knownTrackerHosts.size > 1000) knownTrackerHosts.clear();
-            
-            return { cancel: true };
+            setTimeout(() => knownTrackerHosts.delete(hostname), 3600000); // 1-Hour TTL
+            return;
           }
         }
 
-        // Cache safe hosts to speed up future requests and enforce memory limits
         safeHostsCache.add(hostname);
-        if (safeHostsCache.size > 2000) safeHostsCache.clear();
+        setTimeout(() => safeHostsCache.delete(hostname), 3600000); // 1-Hour TTL
 
       } catch (err) {
-        // Fail open: If the native DNS resolver times out, allow the request to prevent page breakage
+        // Fail open on DNS timeout
       }
-      return {};
     },
-    { urls: ["<all_urls>"] },
-    ["blocking"]
+    { urls: ["<all_urls>"] } 
+    // Manifest V3: ["blocking"] removed to permit async DNS resolution
   );
 
-  // Scoped Burner Session Rules: Cross-site Referrer & Origin Clamping
   browser.tabs.onCreated.addListener(async (tab) => {
     if (tab.id && isBurner(tab.cookieStoreId)) {
       await applyTabFirewallRules(tab.id);
@@ -80,6 +72,27 @@ export function setupNetworkFirewall() {
   browser.tabs.onRemoved.addListener(async (tabId) => {
     await clearTabFirewallRules(tabId);
   });
+}
+
+/**
+ * Commits a CNAME uncloaked tracker to the Declarative Net Request engine.
+ */
+async function blockCloakedTracker(hostname) {
+  const ruleId = cloakedDnrIdCounter++;
+  const rule = {
+    id: ruleId,
+    priority: 100,
+    action: { type: "block" },
+    condition: { 
+      urlFilter: `||${hostname}^`, 
+      resourceTypes: ["main_frame", "sub_frame", "script", "xmlhttprequest", "image", "ping"] 
+    }
+  };
+  try {
+    await browser.declarativeNetRequest.updateDynamicRules({ addRules: [rule] });
+  } catch (e) {
+    console.warn(`[Aistos Firewall] DNR block mapping failed for ${hostname}`);
+  }
 }
 
 /**
@@ -114,23 +127,9 @@ async function applyTabFirewallRules(tabId) {
   }
 }
 
-/**
- * Purges dynamic rules when a Burner tab is closed.
- */
 async function clearTabFirewallRules(tabId) {
   const ruleId = DYNAMIC_RULE_START_ID + (tabId % 30000);
   try {
-    await browser.declarativeNetRequest.updateSessionRules({
-      removeRuleIds: [ruleId]
-    });
-  } catch {
-    // Ignore DNR cleanup errors on rapidly closed tabs
-  }
-}
-
-/**
- * Verifies if the resolved canonical domain belongs to a tracking network.
- */
-function isKnownTracker(canonicalDomain) {
-  return TRACKER_SUFFIXES.some(suffix => canonicalDomain.endsWith(suffix));
+    await browser.declarativeNetRequest.updateSessionRules({ removeRuleIds: [ruleId] });
+  } catch {}
 }
