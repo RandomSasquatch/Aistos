@@ -279,6 +279,12 @@
       onAlarm: {
         addListener(_cb) {}
       }
+    },
+
+    commands: {
+      onCommand: {
+        addListener(_cb) {}
+      }
     }
   };
 

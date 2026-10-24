@@ -9,9 +9,9 @@ const discardLock = new Set();
 
 export function setupTabManager() {
   // Listen for discard inquiries from popup or background routines
-  browser.runtime.onMessage.addListener(async (msg) => {
-    if (msg.action === "DISCARD_BACKGROUND_TABS") {
-      return await discardEligibleTabs();
+  browser.runtime.onMessage.addListener((msg) => {
+    if (msg?.action === "DISCARD_BACKGROUND_TABS") {
+      return discardEligibleTabs();
     }
   });
 }

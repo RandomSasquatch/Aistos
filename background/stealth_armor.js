@@ -19,15 +19,17 @@ export function setupStealthArmor() {
         // Inject the WebRTC Nullifier specifically into the Burner's execution context
         await browser.scripting.executeScript({
           target: { tabId: tabId, allFrames: true },
+          world: "MAIN",
+          injectImmediately: true,
           func: () => {
-            // Shadow DOM overriding of WebRTC APIs to prevent IP leakage
             const noOpRTC = function() {
               throw new Error("Aistos Stealth Armor: WebRTC disabled in Ephemeral Workspace.");
             };
-            Object.defineProperty(window, 'RTCPeerConnection', { value: noOpRTC, writable: false });
-            Object.defineProperty(window, 'webkitRTCPeerConnection', { value: noOpRTC, writable: false });
-          },
-          injectImmediately: true
+            try {
+              Object.defineProperty(window, "RTCPeerConnection", { value: noOpRTC, writable: false });
+              Object.defineProperty(window, "webkitRTCPeerConnection", { value: noOpRTC, writable: false });
+            } catch (e) {}
+          }
         });
       } catch (err) {
         // Suppressed: execution naturally fails on restricted about:* pages

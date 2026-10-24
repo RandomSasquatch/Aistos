@@ -57,7 +57,13 @@ let saveTimeout;
 function debouncedSave() {
   clearTimeout(saveTimeout);
   saveTimeout = setTimeout(async () => {
-    await browser.storage.local.set({ domainVaults: vaultRules });
+    const domainVaults = {};
+    for (const r of vaultRules) {
+      if (r.domain && r.containerId) {
+        domainVaults[r.domain] = r.containerId;
+      }
+    }
+    await browser.storage.local.set({ domainVaults });
     flashSaveIndicator("✓ Rule Priority Saved");
   }, 500);
 }

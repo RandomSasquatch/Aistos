@@ -60,6 +60,18 @@
       "128": "icons/aistos-128.png"
     }
   },
+  "options_ui": {
+    "page": "ui/options/options.html",
+    "open_in_tab": true
+  },
+  "commands": {
+    "new-burner-tab": {
+      "suggested_key": {
+        "default": "Alt+B"
+      },
+      "description": "Spawn a new ephemeral Burner Workspace tab"
+    }
+  },
   "declarative_net_request": {
     "rule_resources": [
       {

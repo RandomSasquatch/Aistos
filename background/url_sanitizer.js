@@ -164,3 +164,26 @@ function isOAuthFlow(urlStr) {
     return false;
   }
 }
+
+/**
+ * Binds URL sanitization listeners synchronously on boot.
+ */
+export function setupUrlSanitizer() {
+  browser.runtime.onMessage.addListener((msg) => {
+    if (msg?.action === "SANITIZE_URL" && msg.url) {
+      return Promise.resolve({ sanitizedUrl: sanitizeUrl(msg.url) });
+    }
+  });
+
+  browser.webNavigation.onBeforeNavigate.addListener(async (details) => {
+    if (details.frameId !== 0) return;
+    if (!details.url || details.url.startsWith("about:") || details.url.startsWith("moz-extension:")) return;
+
+    try {
+      const clean = sanitizeUrl(details.url);
+      if (clean !== details.url) {
+        await browser.tabs.update(details.tabId, { url: clean });
+      }
+    } catch {}
+  });
+}

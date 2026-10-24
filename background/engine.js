@@ -7,28 +7,32 @@
 import { setupContainerManager } from "./container_manager.js";
 import { setupStealthArmor } from "./stealth_armor.js";
 import { setupNetworkFirewall } from "./network_firewall.js";
-import { initUrlSanitizer } from "./url_sanitizer.js";
+import { setupUrlSanitizer, initUrlSanitizer } from "./url_sanitizer.js";
 import { setupTabManager } from "./tab_manager.js";
 import { setupContextMenu } from "./context_menu.js";
 
 const WATCHDOG_ALARM_NAME = "Aistos_Watchdog_Heartbeat";
 
-async function boot() {
+function boot() {
   console.log("[Aistos Engine] Initializing Zero-Trust Security Sandbox...");
 
-  // 1. Load static tracking dictionaries into memory limits
-  await initUrlSanitizer();
-
-  // 2. Bind core functional background managers (Zero-Framework Architecture)
+  // 1. Synchronously register all core functional background managers
+  // CRITICAL MV3: Must register listeners synchronously on the first turn of the event loop
   setupContainerManager();
   setupStealthArmor();
   setupNetworkFirewall();
+  setupUrlSanitizer();
   setupTabManager();
   setupContextMenu();
 
-  // 3. Register Watchdog Heartbeat Alarm to clean up orphaned resources
+  // 2. Register Watchdog Heartbeat Alarm to clean up orphaned resources
   browser.alarms.create(WATCHDOG_ALARM_NAME, { periodInMinutes: 1 });
   browser.alarms.onAlarm.addListener(onWatchdogAlarm);
+
+  // 3. Asynchronously load static tracking dictionaries without yielding the event loop
+  initUrlSanitizer().catch((err) => {
+    console.warn("[Aistos Engine] Deferred dictionary initialization encountered warning:", err);
+  });
 
   console.log("[Aistos Engine] Phase 1 Core Modules Loaded Successfully.");
 }
@@ -54,13 +58,14 @@ async function onWatchdogAlarm(alarm) {
   }
 }
 
-// Lifecycle boot - Sets up blank vault state on first installation
+// Lifecycle boot - Sets up blank vault state and auto-opens onboarding on first installation
 browser.runtime.onInstalled.addListener(async (details) => {
   if (details.reason === "install") {
     await browser.storage.local.set({
       domainVaults: {},
       installedAt: Date.now()
     });
+    await browser.tabs.create({ url: browser.runtime.getURL("ui/migration/migration.html") });
   }
 });
 
