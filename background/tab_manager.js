@@ -8,10 +8,10 @@
 const discardLock = new Set();
 
 export function setupTabManager() {
-  // Listen for discard inquiries from popup or background routines
-  browser.runtime.onMessage.addListener(async (msg) => {
-    if (msg.action === "DISCARD_BACKGROUND_TABS") {
-      return await discardEligibleTabs();
+  // Listen synchronously for discard inquiries from popup or background routines
+  browser.runtime.onMessage.addListener((msg) => {
+    if (msg?.action === "DISCARD_BACKGROUND_TABS") {
+      return discardEligibleTabs();
     }
   });
 }
@@ -83,7 +83,7 @@ async function discardEligibleTabs() {
       await browser.tabs.discard(tab.id);
       discardedCount++;
     } catch {
-      // Ignore: Tab may have navigated or closed during the promise resolution
+      // Ignore: Tab may have navigated or closed during promise resolution
     }
   }
 
@@ -100,21 +100,20 @@ async function checkTabProtection(tabId) {
       target: { tabId: tabId },
       func: () => {
         const hasPip = Boolean(document.pictureInPictureElement);
-        const hasActiveMedia = [...document.querySelectorAll('video, audio')].some(m => !m.paused && m.currentTime > 0);
+        const hasActiveMedia = [...document.querySelectorAll("video, audio")].some(m => !m.paused && m.currentTime > 0);
         
         // Form Safety Net: Checks if any standard input holds user-typed data
-        const hasModifiedForms = [...document.querySelectorAll('input, textarea')].some(el => {
-           return el.value && el.value !== el.defaultValue && !['hidden', 'submit', 'button', 'checkbox', 'radio'].includes(el.type);
+        const hasModifiedForms = [...document.querySelectorAll("input, textarea")].some(el => {
+           return el.value && el.value !== el.defaultValue && !["hidden", "submit", "button", "checkbox", "radio"].includes(el.type);
         });
         
         return hasPip || hasActiveMedia || hasModifiedForms;
       }
     });
     
-    // Manifest V3 Scripting returns an array of frame results; we evaluate the main frame.
     return Boolean(executionResults[0]?.result);
   } catch {
-    // If execution fails (e.g. privileged pages like about:addons or blocked domains), assume unsafe to discard
+    // If execution fails on privileged pages, assume unsafe to discard
     return true; 
   }
 }

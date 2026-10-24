@@ -9,7 +9,7 @@ import { isBurner } from "./container_manager.js";
 const PRIVATE_SUBNET_REGEX = /^(localhost|127\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[0-1])\.\d+\.\d+|169\.254\.\d+\.\d+|\[?::1\]?)$/i;
 
 export function setupStealthArmor() {
-  // Uses onUpdated to intercept new page loads and inject spoofing before DOM executes
+  // Intercept new page loads and inject spoofing strictly inside Burner tabs
   browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     if (changeInfo.status === "loading" && tab.cookieStoreId && isBurner(tab.cookieStoreId)) {
       try {
@@ -19,18 +19,20 @@ export function setupStealthArmor() {
         // Inject the WebRTC Nullifier specifically into the Burner's execution context
         await browser.scripting.executeScript({
           target: { tabId: tabId, allFrames: true },
+          world: "MAIN",
+          injectImmediately: true,
           func: () => {
-            // Shadow DOM overriding of WebRTC APIs to prevent IP leakage
             const noOpRTC = function() {
               throw new Error("Aistos Stealth Armor: WebRTC disabled in Ephemeral Workspace.");
             };
-            Object.defineProperty(window, 'RTCPeerConnection', { value: noOpRTC, writable: false });
-            Object.defineProperty(window, 'webkitRTCPeerConnection', { value: noOpRTC, writable: false });
-          },
-          injectImmediately: true
+            try {
+              Object.defineProperty(window, "RTCPeerConnection", { value: noOpRTC, writable: false });
+              Object.defineProperty(window, "webkitRTCPeerConnection", { value: noOpRTC, writable: false });
+            } catch (e) {}
+          }
         });
       } catch (err) {
-        // Suppressed: execution naturally fails on restricted about:* pages
+        // Execution naturally suppresses on privileged internal pages
       }
     }
   });
