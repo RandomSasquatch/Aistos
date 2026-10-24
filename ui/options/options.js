@@ -1,6 +1,6 @@
 /**
  * Aistos Options Controller
- * Native Drag & Drop and debounced local storage writes.
+ * Native Drag & Drop, privacy shield switchboard, and debounced local storage writes.
  * 100% innerHTML-free for Mozilla addons-linter compliance.
  */
 
@@ -9,6 +9,7 @@ let vaultRules = [];
 document.addEventListener("DOMContentLoaded", async () => {
   await loadState();
   await loadContainerOptions();
+  await loadToggles();
   setupUI();
 });
 
@@ -27,6 +28,7 @@ async function loadContainerOptions() {
   const containers = await browser.contextualIdentities.query({});
   const permanent = containers.filter(c => !c.name.startsWith("AistosBurner"));
   
+  select.replaceChildren();
   for (const c of permanent) {
     const opt = document.createElement("option");
     opt.value = c.cookieStoreId;
@@ -35,18 +37,52 @@ async function loadContainerOptions() {
   }
 }
 
+async function loadToggles() {
+  const toggles = ["toggle-dnr", "toggle-cname", "toggle-stealth", "toggle-sanitizer"];
+  const data = await browser.storage.local.get(toggles);
+  
+  for (const id of toggles) {
+    const el = document.getElementById(id);
+    if (el) {
+      el.checked = data[id] !== false; // default true
+      el.addEventListener("change", async () => {
+        await browser.storage.local.set({ [id]: el.checked });
+        flashSaveIndicator("✓ Shields Updated");
+      });
+    }
+  }
+}
+
 let saveTimeout;
 function debouncedSave() {
   clearTimeout(saveTimeout);
-  saveTimeout = setTimeout(() => {
-    browser.storage.local.set({ domainVaults: vaultRules });
+  saveTimeout = setTimeout(async () => {
+    await browser.storage.local.set({ domainVaults: vaultRules });
+    flashSaveIndicator("✓ Rule Priority Saved");
   }, 500);
+}
+
+function flashSaveIndicator(msg) {
+  const indicator = document.getElementById("save-indicator");
+  if (indicator) {
+    indicator.textContent = msg;
+    setTimeout(() => { indicator.textContent = ""; }, 2500);
+  }
 }
 
 function renderList() {
   const list = document.getElementById("rules-list");
-  // Safely clear the list without using innerHTML
   list.replaceChildren(); 
+
+  if (vaultRules.length === 0) {
+    const emptyLi = document.createElement("li");
+    emptyLi.style.padding = "1.5rem";
+    emptyLi.style.textAlign = "center";
+    emptyLi.style.color = "var(--text-dim)";
+    emptyLi.textContent = "No priority routes defined. Add a domain above!";
+    list.appendChild(emptyLi);
+    return;
+  }
 
   vaultRules.forEach((rule, index) => {
     const li = document.createElement("li");
@@ -56,21 +92,33 @@ function renderList() {
     
     // Construct text nodes safely
     const span = document.createElement("span");
+    span.style.display = "flex";
+    span.style.alignItems = "center";
+    span.style.gap = "8px";
+
+    const grip = document.createElement("span");
+    grip.textContent = "⠿";
+    grip.style.color = "var(--text-dim)";
+    grip.style.cursor = "grab";
+    grip.title = "Drag to change rule priority";
+
     const strong = document.createElement("strong");
+    strong.className = "domain-tag";
     strong.textContent = rule.domain;
     
     const small = document.createElement("small");
-    small.textContent = rule.containerId;
+    small.textContent = `💼 ${rule.containerId}`;
     
+    span.appendChild(grip);
     span.appendChild(strong);
     span.appendChild(document.createTextNode(" \u2192 ")); // Safe arrow rendering
     span.appendChild(small);
 
     // Construct button safely
     const btn = document.createElement("button");
-    btn.className = "btn danger btn-remove";
+    btn.className = "btn-remove";
     btn.dataset.index = index;
-    btn.textContent = "X";
+    btn.textContent = "Delete";
     btn.setAttribute("aria-label", `Remove rule for ${rule.domain}`);
 
     li.appendChild(span);
@@ -100,7 +148,8 @@ function setupUI() {
     const domainInput = document.getElementById("new-domain");
     const containerSelect = document.getElementById("new-container");
     
-    const domain = domainInput.value.trim();
+    let domain = domainInput.value.trim().toLowerCase();
+    domain = domain.replace(/^https?:\/\//, "").replace(/\/.*$/, "");
     if (domain.length < 3) return;
 
     vaultRules.unshift({ domain, containerId: containerSelect.value });

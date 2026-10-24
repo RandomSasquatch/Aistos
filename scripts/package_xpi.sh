@@ -24,22 +24,26 @@ mkdir -p "${DIST_DIR}" "${TMP_DIR}"
 
 # Stage release files excluding build tools, CI, and development artifacts
 echo -e "\x1b[34m[AISTOS PACKAGER]\x1b[0m Staging production files..."
-rsync -av \
-  --exclude='.git*' \
-  --exclude='.github' \
-  --exclude='scripts' \
-  --exclude='dist' \
-  --exclude='node_modules' \
-  --exclude='package*.json' \
-  --exclude='*.md' \
-  --exclude='*.DS_Store' \
-  "${ROOT_DIR}/" "${TMP_DIR}/"
+if command -v rsync &> /dev/null && command -v zip &> /dev/null; then
+  rsync -av \
+    --exclude='.git*' \
+    --exclude='.github' \
+    --exclude='scripts' \
+    --exclude='dist' \
+    --exclude='node_modules' \
+    --exclude='package*.json' \
+    --exclude='*.md' \
+    --exclude='*.DS_Store' \
+    "${ROOT_DIR}/" "${TMP_DIR}/"
 
-# Build Zip / XPI Archive
-cd "${TMP_DIR}"
-zip -r -9 "${OUTPUT_XPI}" ./* > /dev/null
-cd "${ROOT_DIR}"
-rm -rf "${TMP_DIR}"
+  # Build Zip / XPI Archive
+  cd "${TMP_DIR}"
+  zip -r -9 "${OUTPUT_XPI}" ./* > /dev/null
+  cd "${ROOT_DIR}"
+  rm -rf "${TMP_DIR}"
+else
+  node "${SCRIPT_DIR}/build.js"
+fi
 
 # Verify Archive Creation
 if [ ! -f "${OUTPUT_XPI}" ]; then

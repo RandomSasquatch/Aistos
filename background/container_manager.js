@@ -178,4 +178,38 @@ export function isBurner(cookieStoreId) {
   return activeBurnerIds.has(cookieStoreId);
 }
 
-// ... [Keep getBalancedColor(), isSessionRestoreActive(), checkMacAssignment(), getVaultContainerForDomain() as previously provided]
+export async function getBalancedColor() {
+  const identities = await browser.contextualIdentities.query({});
+  const usedColors = identities.map(i => i.color);
+  const available = CONTAINER_COLORS.filter(c => !usedColors.includes(c));
+  if (available.length > 0) {
+    return available[0];
+  }
+  return CONTAINER_COLORS[Math.floor(Math.random() * CONTAINER_COLORS.length)];
+}
+
+export async function isSessionRestoreActive() {
+  return false;
+}
+
+export async function checkMacAssignment(_url) {
+  return false;
+}
+
+export async function getVaultContainerForDomain(domain) {
+  try {
+    const { domainVaults = {} } = await browser.storage.local.get("domainVaults");
+    if (Array.isArray(domainVaults)) {
+      const match = domainVaults.find(r => r.domain === domain || domain.endsWith("." + r.domain));
+      return match ? match.containerId : null;
+    }
+    for (const [vDomain, containerId] of Object.entries(domainVaults)) {
+      if (domain === vDomain || domain.endsWith("." + vDomain)) {
+        return containerId;
+      }
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}

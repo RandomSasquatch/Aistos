@@ -7,7 +7,7 @@
 import { setupContainerManager } from "./container_manager.js";
 import { setupStealthArmor } from "./stealth_armor.js";
 import { setupNetworkFirewall } from "./network_firewall.js";
-import { setupUrlSanitizer, initUrlSanitizer } from "./url_sanitizer.js";
+import { initUrlSanitizer } from "./url_sanitizer.js";
 import { setupTabManager } from "./tab_manager.js";
 import { setupContextMenu } from "./context_menu.js";
 
