@@ -2,23 +2,98 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Aistos - Security Dashboard</title>
   <link rel="stylesheet" href="../common.css">
 </head>
 <body>
   <div class="dashboard-container">
-    <header class="header"><h1>Aistos Engine: Domain Vaults</h1></header>
-
-    <section class="panel">
-      <h2 class="panel-title">Zero-Trust Architecture Configuration</h2>
-      <div class="input-group">
-        <input type="text" id="new-domain" placeholder="e.g., github.com">
-        <select id="new-container"></select>
-        <button id="btn-add-rule" class="btn">Add Route</button>
+    <header class="header">
+      <div>
+        <h1 data-i18n="optionsDashboardTitle">Aistos Security & Privacy Shields</h1>
+        <p class="subtitle">Zero-Trust Architecture Configuration & Domain Priority Routing</p>
       </div>
-      <ul id="rules-list"></ul>
+      <div>
+        <a href="../dashboard/dashboard.html" class="btn secondary" style="font-size: 0.85rem; padding: 0.5rem 1rem; text-decoration: none;">
+          Command Center ↗
+        </a>
+      </div>
+    </header>
+
+    <!-- Global Privacy Toggles Switchboard -->
+    <section class="panel">
+      <h2 class="panel-title" data-i18n="optionsPrivacyTogglesTitle">Global Privacy Shields</h2>
+      
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <h4 data-i18n="optionsToggleDNR">Native Ad & Tracker Blocking (DNR)</h4>
+          <p>Executes rules inside Firefox's native C++ engine without background thread overhead.</p>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="toggle-dnr" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <h4 data-i18n="optionsToggleCNAME">CNAME Uncloaking (DNS Resolution)</h4>
+          <p>Resolves canonical domain names via DNS to unmask and block hidden third-party trackers.</p>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="toggle-cname" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <h4>Stealth Armor (Anti-Fingerprinting)</h4>
+          <p>Nullifies WebRTC IP leak vectors dynamically inside ephemeral Burner workspaces.</p>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="toggle-stealth" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <h4>Deep Link Parameter Sanitizer</h4>
+          <p>Recursively removes tracking parameters (utm_*, fbclid, gclid) and unwraps bounce redirects.</p>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="toggle-sanitizer" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+    </section>
+
+    <!-- Domain Vaults Rule Priority -->
+    <section class="panel">
+      <div class="panel-header">
+        <h2 class="panel-title" data-i18n="optionsDomainVaultsTitle">Domain Vaults Priority Routing</h2>
+        <span id="save-indicator" style="font-size: 0.8rem; color: var(--accent-success); font-weight: 600;"></span>
+      </div>
+
+      <p style="color: var(--text-muted); margin-bottom: 1.25rem; font-size: 0.9rem;" data-i18n="optionsDomainVaultsDesc">
+        Drag and drop rules to set priority. The top-most matching rule wins when navigating.
+      </p>
+
+      <div class="input-group">
+        <input type="text" id="new-domain" placeholder="e.g., github.com or accounts.google.com" data-i18n-placeholder="optionsInputPlaceholder">
+        <select id="new-container"></select>
+        <button id="btn-add-rule" class="btn primary" data-i18n="optionsBtnAddRule">Add Route</button>
+      </div>
+
+      <ul id="rules-list">
+        <!-- Populated dynamically by options.js -->
+      </ul>
     </section>
   </div>
+
+  <script src="../browser-polyfill.js"></script>
+  <script src="../i18n_renderer.js" type="module"></script>
   <script src="options.js" type="module"></script>
 </body>
 </html>

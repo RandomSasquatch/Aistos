@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aistos</title>
+  <meta name="description" content="Zero-Trust Session Sandbox. Native firewalling, ephemeral workspaces, and instant data vaporization.">
+  <meta property="og:title" content="Aistos">
+  <meta property="og:description" content="Zero-Trust Session Sandbox. Native firewalling, ephemeral workspaces, and instant data vaporization.">
+  <link rel="icon" type="image/png" href="/icons/aistos-32.png">
+  <link rel="stylesheet" href="/ui/common.css">
+  <style>
+    body {
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      min-height: 100vh;
+      background-color: var(--bg-core);
+    }
+
+    .top-nav {
+      background: rgba(9, 13, 22, 0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 0.85rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-main);
+    }
+
+    .nav-brand img {
+      width: 32px;
+      height: 32px;
+      filter: drop-shadow(0 0 8px var(--accent-glow));
+    }
+
+    .nav-brand h1 {
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-brand .badge {
+      font-size: 0.72rem;
+      background: rgba(249, 115, 22, 0.15);
+      color: var(--accent-primary);
+      border: 1px solid rgba(249, 115, 22, 0.3);
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .status-chips {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .chip {
+      font-size: 0.78rem;
+      padding: 5px 12px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chip.green {
+      color: var(--accent-success);
+      border-color: rgba(16, 185, 129, 0.25);
+      background: rgba(16, 185, 129, 0.06);
+    }
+
+    .chip .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 8px currentColor;
+    }
+
+    .tab-bar {
+      display: flex;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 0 2rem;
+      gap: 1.75rem;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 1rem 0.25rem;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s;
+      letter-spacing: -0.01em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-main);
+    }
+
+    .tab-btn.active {
+      color: var(--accent-primary);
+    }
+
+    .tab-btn.active::after {
+      content: "";
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--accent-primary);
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    .main-viewport {
+      flex: 1;
+      padding: 2rem;
+      display: flex;
+      justify-content: center;
+    }
+
+    .view-frame-wrapper {
+      width: 100%;
+      max-width: 920px;
+    }
+
+    iframe.view-frame {
+      width: 100%;
+      min-height: 640px;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      background: var(--bg-surface);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+    }
+
+    .popup-wrapper {
+      max-width: 380px;
+      margin: 0 auto;
+    }
+
+    .popup-wrapper iframe {
+      min-height: 480px;
+    }
+
+    .workbench-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .mono-box {
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      background: var(--bg-core);
+      padding: 1.15rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      color: #38bdf8;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Navigation & Status -->
+  <header class="top-nav">
+    <a href="/" class="nav-brand">
+      <img src="/icons/aistos-logo.svg" alt="Aistos Logo" onerror="this.src='/icons/aistos-32.png'">
+      <h1>Aistos</h1>
+      <span class="badge">Zero-Trust Sandbox</span>
+    </a>
+
+    <div class="status-chips">
+      <div class="chip green">
+        <span class="dot"></span> Memory Overhead: &lt; 10 MB
+      </div>
+      <div class="chip green">
+        <span class="dot"></span> Native C++ Firewall: Active
+      </div>
+      <div class="chip">
+        <span class="dot"></span> Manifest V3
+      </div>
+    </div>
+  </header>
+
+  <!-- Interactive Navigation Bar -->
+  <nav class="tab-bar">
+    <button class="tab-btn active" data-tab="dashboard">
+      <span>🛡️ Command Center</span>
+    </button>
+    <button class="tab-btn" data-tab="popup">
+      <span>⚡ Extension Action Popup</span>
+    </button>
+    <button class="tab-btn" data-tab="options">
+      <span>⚙️ Domain Vault Priority</span>
+    </button>
+    <button class="tab-btn" data-tab="migration">
+      <span>🔄 Setup & CAD Migration</span>
+    </button>
+    <button class="tab-btn" data-tab="firewall">
+      <span>🧪 Firewall & URL Scrubber</span>
+    </button>
+  </nav>
+
+  <!-- Main Dynamic Viewport -->
+  <main class="main-viewport">
+    <div id="tab-dashboard" class="view-frame-wrapper tab-content">
+      <iframe class="view-frame" src="/ui/dashboard/dashboard.html"></iframe>
+    </div>
+
+    <div id="tab-popup" class="view-frame-wrapper popup-wrapper tab-content" style="display: none;">
+      <p style="text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">
+        Interactive preview of the Firefox browser toolbar extension action popup:
+      </p>
+      <iframe class="view-frame" src="/ui/popup/popup.html"></iframe>
+    </div>
+
+    <div id="tab-options" class="view-frame-wrapper tab-content" style="display: none;">
+      <iframe class="view-frame" src="/ui/options/options.html"></iframe>
+    </div>
+
+    <div id="tab-migration" class="view-frame-wrapper tab-content" style="display: none;">
+      <iframe class="view-frame" src="/ui/migration/migration.html"></iframe>
+    </div>
+
+    <div id="tab-firewall" class="view-frame-wrapper tab-content" style="display: none;">
+      <div class="workbench-card">
+        <h2 class="panel-title" style="margin-bottom: 0.5rem;">Live URL Sanitizer & Parameter Scrubber</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">
+          Tests real-time tracking parameter elimination powered by <code>rules/tracking_params.json</code>.
+        </p>
+        <div class="input-group">
+          <input type="text" id="dirty-url-input" value="https://example.com/checkout?utm_source=facebook&fbclid=IwAR09xYZ&tag=affiliate_id&product_id=9821&utm_campaign=winter_sale">
+          <button id="btn-clean-url" class="btn primary">Scrub URL</button>
+        </div>
+        <div style="margin-top: 1rem;">
+          <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">Sanitized URL Result:</div>
+          <div id="clean-url-result" class="mono-box">https://example.com/checkout?product_id=9821</div>
+          <div id="scrub-count-badge" style="color: var(--accent-success); font-size: 0.85rem; margin-top: 0.65rem; font-weight: 600;">
+            ✓ Scrubbed 4 tracking parameter(s)
+          </div>
+        </div>
+      </div>
+
+      <div class="workbench-card">
+        <h2 class="panel-title" style="margin-bottom: 0.5rem;">Declarative Net Request (DNR) Rules Inspector</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
+          Active rule resources from <code>rules/dnr_rules.json</code> executing native browser network filtering:
+        </p>
+        <div id="dnr-rules-dump" class="mono-box">Loading rules...</div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/ui/browser-polyfill.js"></script>
+  <script>
+    // Tab switching logic
+    const tabs = document.querySelectorAll('.tab-btn');
+    const contents = document.querySelectorAll('.tab-content');
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        contents.forEach(c => c.style.display = 'none');
+        
+        tab.classList.add('active');
+        const targetId = `tab-${tab.dataset.tab}`;
+        const target = document.getElementById(targetId);
+        if (target) target.style.display = 'block';
+      });
+    });
+
+    // Listen for navigation requests from child iframes (e.g. migration finish button)
+    window.addEventListener("message", (event) => {
+      if (event.data && event.data.type === "AISTOS_NAVIGATE") {
+        const url = event.data.url;
+        if (url.includes("options.html")) {
+          const optTab = document.querySelector('[data-tab="options"]');
+          if (optTab) optTab.click();
+        } else if (url.includes("dashboard.html")) {
+          const dashTab = document.querySelector('[data-tab="dashboard"]');
+          if (dashTab) dashTab.click();
+        }
+      }
+    });
+
+    // Live URL Sanitizer interactive workbench
+    let trackingParams = [];
+    fetch('/rules/tracking_params.json')
+      .then(r => r.json())
+      .then(params => { trackingParams = params; })
+      .catch(() => {
+        trackingParams = ["utm_source","utm_medium","utm_campaign","utm_term","utm_content","fbclid","gclid","msclkid","mc_eid","igshid","twclid","yclid","hsmi","tag","_encoding","spm"];
+      });
+
+    // Load DNR rules
+    fetch('/rules/dnr_rules.json')
+      .then(r => r.json())
+      .then(rules => {
+        document.getElementById('dnr-rules-dump').textContent = JSON.stringify(rules, null, 2);
+      })
+      .catch(err => {
+        document.getElementById('dnr-rules-dump').textContent = "Failed to load rules: " + err.message;
+      });
+
+    const dirtyInput = document.getElementById('dirty-url-input');
+    const cleanOutput = document.getElementById('clean-url-result');
+    const scrubBadge = document.getElementById('scrub-count-badge');
+    const scrubBtn = document.getElementById('btn-clean-url');
+
+    function cleanUrl() {
+      const raw = dirtyInput.value.trim();
+      try {
+        const parsed = new URL(raw);
+        let removedCount = 0;
+        for (const p of trackingParams) {
+          if (parsed.searchParams.has(p)) {
+            parsed.searchParams.delete(p);
+            removedCount++;
+          }
+        }
+        cleanOutput.textContent = parsed.toString();
+        scrubBadge.textContent = `✓ Scrubbed ${removedCount} tracking parameter(s)`;
+      } catch (e) {
+        cleanOutput.textContent = "Invalid URL format";
+        scrubBadge.textContent = "";
+      }
+    }
+
+    if (scrubBtn) scrubBtn.addEventListener('click', cleanUrl);
+    if (dirtyInput) dirtyInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') cleanUrl(); });
+  </script>
+</body>
+</html>
